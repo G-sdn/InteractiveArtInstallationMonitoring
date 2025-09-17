@@ -1,0 +1,17 @@
+# Python virtual environment
+bin/
+lib/
+pyvenv.cfg
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Logs and temporary files
+logs/
+*.log
+*.tmp
+
+CLAUDE.md
+_archive/
+CACHEDIR.TAG
