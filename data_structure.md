@@ -1,4 +1,4 @@
-# Forest Interactive Installation - Data Points Documentation
+# Interactive Installation - Data Points Documentation
 
 This document provides a comprehensive overview of all data points collected by the Interactive Forest Art Installation simulator.
 
