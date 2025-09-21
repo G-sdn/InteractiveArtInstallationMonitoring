@@ -3,13 +3,17 @@
 An example of a real-time monitoring system for an interactive art installation that combines physical sensors, data visualization, and responsive audio/lighting experiences.
 
 ## Table of Contents
-1. [Use Cases](#use-case)
-2. [Quick Start](#quick-start)
-3. [System Overview](#system-overview)
+1. [Guide](#guide)
+2. [Use Cases](#use-case)
+3. [Quick Start](#quick-start)
+4. [System Overview](#system-overview)
 5. [System Architecture](#system-architecture)
 6. [Installation & Setup](#installation--setup)
 7. [Configuration](#configuration)
 8. [Data Models](#data-models)
+
+## Guide
+You can follow the [guide](guide/GUIDE.md) in this repo for an in-depth tutorial on how to set up InfluxDB and Grafana in seconds.
 
 ## Use cases
 
@@ -314,3 +318,5 @@ Each forest zone has unique characteristics:
   "timestamp": "2025-01-15T10:30:00Z"
 }
 ```
+
+See the [data_structure.md](data_structure.md) file for detailed info on the data model.

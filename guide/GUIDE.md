@@ -126,7 +126,7 @@ After InfluxDB starts, create the system-metrics bucket:
 You're all done with install and setup!
 
 ## Data Bridge
-The data bridge script gathers the data from the installation and sends it to your InfluxDB instance using the python influxdb-client library. It does exactly what it's called, it *bridges* between these two instances. This code could also be written directly into your application, but we prefer to keep these decoupled to seperate concerns between data source and data pipeline. This makes it easier to transition from testing and development to production, to troubleshoot and gives you a reusable component for future projects.
+The [data bridge script](influx_bridge.py) gathers the data from the installation and sends it to your InfluxDB instance using the python influxdb-client library. It does exactly what it's called, it *bridges* between these two instances. This code could also be written directly into your application, but we prefer to keep these decoupled to seperate concerns between data source and data pipeline. This makes it easier to transition from testing and development to production, to troubleshoot and gives you a reusable component for future projects.
 
 Code comments in the influx_bridge.py script explain what each section does. You can also follow the [InfluxDB guide](https://docs.influxdata.com/influxdb/v2/api-guide/client-libraries/python/) for more information on setting up the python client library.
 
@@ -151,7 +151,7 @@ First, we wanted to show different ways of writing data to InfluxDB. We could wr
 Code comments in the telegraf config explain what each section does. You can also follow the [InfluxDB Telegraf documentation](https://docs.influxdata.com/telegraf/v1/get-started/) for more information on setting up the config file.
 
 ### Configuring Telegraf
-Just like with our data bridge, we need to adjust our connection details in the telegraf config file.
+Just like with our data bridge, we need to adjust our connection details in the [telegraf config file](telegraf/telegraf.conf).
 
 ```
 # =============================================================================
@@ -240,7 +240,7 @@ Your Grafana instance should now be connected with your InfluxDB instance.
 
 1. Under **Dashboards**, create a new dashboard by clicking the **+** sign beside the search bar.
 2. Select **Import dashboard**.
-3. Copy and paste or upload the grafana_dashboard.json file.
+3. Copy and paste or upload the [grafana_dashboard.json](grafana/grafana_dashboard.json) file.
 4. Click **load**.
 
 Make sure the simulation instance is running and adjust the time window according to how long it has been running.
