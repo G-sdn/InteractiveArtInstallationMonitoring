@@ -1,0 +1,36 @@
+# docker-compose.yml
+version: '3'
+services:
+  influxdb:
+    image: influxdb:latest
+    ports:
+      - "8086:8086"
+    environment:
+      - DOCKER_INFLUXDB_INIT_MODE=setup
+      - DOCKER_INFLUXDB_INIT_USERNAME=admin
+      - DOCKER_INFLUXDB_INIT_PASSWORD=changeme123
+      - DOCKER_INFLUXDB_INIT_ORG=interactiveInstallation
+      - DOCKER_INFLUXDB_INIT_BUCKET=installations  # Primary bucket
+      # Note: Create system-metrics bucket via UI or API after initialization
+    volumes:
+      - influxdb-storage:/var/lib/influxdb2
+      - influxdb-config:/etc/influxdb2
+
+  grafana:
+    image: grafana/grafana-oss:latest
+    ports:
+      - "3000:3000"
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+      - GF_INSTALL_PLUGINS=grafana-clock-panel,grafana-simple-json-datasource
+    volumes:
+      - grafana-storage:/var/lib/grafana
+      - grafana-config:/etc/grafana
+    depends_on:
+      - influxdb
+
+volumes:
+  influxdb-storage:
+  grafana-storage:
+  influxdb-config:
+  grafana-config:
