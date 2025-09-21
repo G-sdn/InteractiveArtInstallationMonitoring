@@ -1,39 +1,46 @@
+# Required imports for InfluxDB bridge functionality
 import asyncio
 import time
 import argparse
-from pathlib import Path
 from datetime import datetime, timezone
-from typing import Dict, List, Optional
+from typing import Dict, List
 from dataclasses import dataclass
 
+# InfluxDB client library for time-series database operations
 from influxdb_client import InfluxDBClient, Point
 from influxdb_client.client.write_api import SYNCHRONOUS
-from watchdog.observers import Observer
-from watchdog.events import FileSystemEventHandler
-
 
 # ================================================================================
 # CONFIGURATION INFLUXDB
 # ================================================================================
+# Configuration class for InfluxDB connection parameters
 
-# To be filled with your InfluxDB instance details 
 @dataclass
 class InfluxDBConfig:
-    url: str = "https://influx.g-sdn.com"
-    token: str = "QPUlR2LDEuhyDW2zheg-6OM39JRCZb3UyOaeRK-tI1GOlSI754rqS9pM435TabBETeUPp2yk1VqDlyZb69P0Fw=="
+    url: str = "http://localhost:8086"
+    token: str = "your-influxdb-token"  # Replace with your actual token
     org: str = "interactiveInstallation"
     bucket: str = "installations"
 
 
 class InstallationDataBridge:
-    """Bridges installation data created by the simulator to InfluxDB"""
+    """
+    Main bridge class that handles data conversion and InfluxDB operations
+
+    This class:
+    1. Manages InfluxDB connections
+    2. Converts JSON data to InfluxDB Points
+    3. Writes data to time-series database
+    """
 
     def __init__(self):
+        # Initialize InfluxDB configuration and connection objects
         self.config = InfluxDBConfig()
         self.client = None
         self.write_api = None
         self.connected = False
 
+        # Statistics tracking for monitoring bridge performance
         self.stats = {
             "total_points_written": 0,
             "total_batches_written": 0,
@@ -44,14 +51,17 @@ class InstallationDataBridge:
         }
 
     def connect_influxdb(self) -> bool:
-        """Establishes InfluxDB connection"""
+        """
+        Establishes connection to InfluxDB and tests health
+        Returns True if successful, False otherwise
+        """
         try:
             self.stats["connection_attempts"] += 1
             self.client = InfluxDBClient(
                 url=self.config.url, token=self.config.token, org=self.config.org
             )
 
-            # Test connection
+            # Always test connection health before proceeding
             health = self.client.health()
             if health.status == "pass":
                 self.write_api = self.client.write_api(write_options=SYNCHRONOUS)
@@ -79,16 +89,25 @@ class InstallationDataBridge:
     def convert_environmental_to_points(
         self, environmental_data: List[Dict]
     ) -> List[Point]:
-        """Converts environmental data to InfluxDB points"""
+        """
+        Converts environmental sensor data to InfluxDB Point objects
+
+        InfluxDB Points structure:
+        - measurement: like a table name ("environmental")
+        - tags: indexed metadata (zone, sensor type)
+        - fields: actual values (temperature, humidity)
+        - timestamp: when the measurement was taken
+        """
         points = []
         for reading in environmental_data:
+            # Create Point with measurement name, tags for indexing, fields for values
             point = (
-                Point("environmental")
-                .tag("zone", reading["zone"])
+                Point("environmental")  # measurement name
+                .tag("zone", reading["zone"])  # indexed metadata
                 .tag("measurement_type", "weather")
-                .field("temperature_c", float(reading["temperature_c"]))
+                .field("temperature_c", float(reading["temperature_c"]))  # numeric values
                 .field("humidity_percent", float(reading["humidity_percent"]))
-                .time(reading["timestamp"])
+                .time(reading["timestamp"])  # timestamp for time-series
             )
             points.append(point)
         return points
@@ -176,7 +195,10 @@ class InstallationDataBridge:
         return points
 
     def convert_dataset_to_influx_points(self, dataset: Dict) -> List[Point]:
-        """Convertit un dataset complet en points InfluxDB"""
+        """
+        Master converter that processes all data types in a dataset
+        Calls specific converters for each data type and combines results
+        """
         all_points = []
 
         if "environmental" in dataset:
@@ -233,13 +255,17 @@ class InstallationDataBridge:
         return all_points
 
     def write_points_to_influx(self, points: List[Point]) -> bool:
-        """Writes a list of points to InfluxDB"""
+        """
+        Batch writes Points to InfluxDB with error handling
+        Updates statistics and handles reconnection if needed
+        """
         if not self.connected or not self.write_api:
             print("[ERROR] Not connected to InfluxDB")
             if not self.connect_influxdb():
                 return False
 
         try:
+            # Batch write all points to the specified bucket
             self.write_api.write(bucket=self.config.bucket, record=points)
 
             # Update statistics
@@ -295,7 +321,14 @@ class InstallationDataBridge:
 async def run_simulator_api_mode(
     bridge: InstallationDataBridge, interval_seconds: int = 5
 ):
-    """Direct API mode: generates and sends data without intermediate files"""
+    """
+    Real-time data pipeline - generates and streams data directly to InfluxDB
+
+    This async function:
+    1. Creates an instance of the installation simulator
+    2. Queries the simulator for data at regular intervals
+    3. Converts and writes this data to InfluxDB immediately
+    """
     from installation_sim import InstallationSim
 
     print("[INFO] API Bridge Mode - Direct connection to simulator")
@@ -311,16 +344,17 @@ async def run_simulator_api_mode(
         while True:
             iteration_start = time.time()
 
-            # Use real time
+            # Use current UTC time for realistic timestamps
             simulator.current_time = datetime.now(timezone.utc)
 
+            # Generate fresh sensor data
             dataset = simulator.generate_complete_dataset()
 
-            # Send to InfluxDB
+            # Convert JSON to InfluxDB Points and write
             success = bridge.process_json_dataset(dataset)
 
+            # Auto-reconnection logic for network resilience
             if not success and iterations % 5 == 0:
-                # Attempt reconnection every 5 iterations if failed
                 print("[INFO] Attempting to reconnect to InfluxDB...")
                 bridge.connect_influxdb()
 
@@ -386,6 +420,10 @@ def test_connection_and_write(bridge: InstallationDataBridge):
 
 
 def main():
+    """
+    Command-line interface with argument parsing
+    Supports different operation modes: API streaming or connection testing
+    """
     parser = argparse.ArgumentParser(
         description="Forest Installation InfluxDB Bridge (Light Version)",
         formatter_class=argparse.RawDescriptionHelpFormatter,

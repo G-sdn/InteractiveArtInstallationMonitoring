@@ -14,7 +14,7 @@ The system monitors **189+ artistic data points every 30 seconds** plus **39+ sy
 - Lighting system monitoring (LED fixtures)
 
 ### System Metrics (system_metrics bucket)
-- Zone Hub system monitoring (3 Raspberry Pi units)
+- Zone Hub system monitoring (3 microcontrollers)
 - Control PC system monitoring (Windows + creative software)
 - Network and infrastructure monitoring
 

@@ -3,8 +3,8 @@ from influxdb_client import InfluxDBClient, Point
 from influxdb_client.client.write_api import SYNCHRONOUS
 
 # Configuration (remplacez par vos valeurs)
-url = "https://influx.g-sdn.com"
-token = "QPUlR2LDEuhyDW2zheg-6OM39JRCZb3UyOaeRK-tI1GOlSI754rqS9pM435TabBETeUPp2yk1VqDlyZb69P0Fw=="  
+url = "http://localhost:8086"  # InfluxDB instance endpoint
+token = "your-influxdb-token"  # Replace with your actual token
 org = "interactiveInstallation"
 bucket = "installations"
 
